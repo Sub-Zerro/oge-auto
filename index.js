@@ -1,56 +1,69 @@
-// async function f1(){
-
-//     let a = await fetch('https://ru.investing.com/currencies/');
-//     return a.text();
-// }
-
-// async function f2(){
-//     return 2;
-// }
-
-// async function go() {
-//     let a2 = await f1();
-//     console.log(a2);
-//     let b2 = await f2();
-//     console.log(b2);
-// }
-
-// go();
-//Асинхронная
-
-
-// const puppeteer = require('puppeteer');
-
-// (async ()=>{
-//     const browser = await puppeteer.launch({headless: false})
-//     const page = await browser.newPage()
-//     await page.goto('https://www.youtube.com/@elzadraw3650')
-//     await page.waitFor(10000)
-
-//     let arr = await page.evaluate(()=>{
-
-//         let text = Array.from(document.querySelectorAll('#video-title'), el => el.innerText)
-//         return text
-//     })
-
-//     console.log(arr)
-
-//     await browser.close()
-// })()
-// для ютуба
-
-
-
+const express = require('express')
+const app = express();
+const fs = require('fs');
+const path = require('path');
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+const { send } = require('process');
 
 const puppeteer = require('puppeteer');
 
-
-
-let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
+let img = path.join(__dirname, '/fullpage.png');
 
 
 
-(async ()=>{
+//let url = 'https://inf-oge.sdamgia.ru/test?id=20244699&nt=True&pub=False';
+
+app.use(express.json());
+app.use(express.urlencoded());
+
+app.get('/', function(req, res){
+    res.sendFile(path.join(__dirname, '/index.html'));
+})
+
+
+app.post('/', async function(req, res){
+    console.log(req.body);
+    await main(req.body.url_adress, req.body.is_auth);
+    res.send({});
+})
+
+app.use(express.static(path.join(__dirname)));
+
+
+
+const PORT = process.env.PORT;
+app.listen(PORT || 3000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function main(url, is_auth){
     
 
     //const browser = await puppeteer.launch({headless: false})
@@ -69,7 +82,7 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
     // let course_arr;
     // let syrio_arr;
 
-    let arr = await page.evaluate(async()=>{
+    let arr = await page.evaluate(async(is_auth)=>{
 
         async function auth(){
             function clicker(btn){
@@ -90,11 +103,14 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
             return;
         }
 
+        if (is_auth == true){
+            auth();
+        }
     
-        auth();
+        
         
         return 1
-    })
+    }, is_auth)
 
 
     
@@ -187,21 +203,34 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
         for (let i = 0; i < answers_dirt.length; i++){
             for (let k = 0; k < answers_dirt[i].length; k++){
                 let roma = 0;
+                let o = 0;
+                let normal = false;
                 for (let l = 0; l < answers_dirt[i][k].length; l++){
-                    
-                    if (answers_dirt[i][k][l][0] == 'О' && answers_dirt[i][k][l][1] == 'т' && answers_dirt[i][k][l][2] == 'в'){
-                        answers_middle.push(answers_dirt[i][k][l]);
-                        roma++;
-                        //console.log(answers_dirt[i][k], 1000);
+                    if (o==0){
+                        if (answers_dirt[i][k][l][0] == 'О' && answers_dirt[i][k][l][1] == 'т' && answers_dirt[i][k][l][2] == 'в'){
+                            answers_middle.push(answers_dirt[i][k][l]);
+                            roma++;
+                            o++;
+                            normal = true;
+                            
+                            //console.log(answers_dirt[i][k], 1000);
+                        }
                     }
+                    
+                    
                 }
                 if (roma==0){
                     for (let l = 0; l < answers_dirt[i][k].length; l++){
                         if (answers_dirt[i][k][l][0] == 'С'){
                             answers_middle.push(answers_dirt[i][k][l]);
+                            normal = true;
                             //console.log(answers_dirt[i][k], 1000);
                         }
                     }
+                }
+
+                if (normal == false){
+                    answers_middle.push('не в этот раз(');
                 }
                 
                 //console.log(answers_dirt[i][k][0]);
@@ -227,25 +256,15 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
         // }
 
         console.log(answers_middle);
-        let alfavit = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+        let alfavit = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+
+        let angl_alf =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         let answers_final = [];
         let str = '';
         for (let i = 0; i < answers_middle.length; i++){
             str = '';
             for (let k = 0; k < answers_middle[i].length; k++){
-                // let roma = 0;
-                // for (let p = 0; p < alfavit.length; p++){
-                //     if (answers_middle[i][k].toLowerCase() == alfavit[p]){
-                //         roma++;
-                //     }
-                // }
-
-                // if (roma==0){
-                //     str+=answers_middle[i][k];
-                // }else{
-                //     console.log('ERR');
-                // }
                 if (answers_middle[i][k] != "­"){
                     str+=answers_middle[i][k];
                 }
@@ -257,14 +276,104 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
         console.log(answers_final);
 
         for (let i = 0; i < answers_final.length; i++){
-            if (answers_final[i][0] == 'С' && answers_final[i][1] == 'л'){
-                answers_final[i] = answers_final[i].substring(answers_final[i].lastIndexOf('«')+1);
+            
 
+            function check_if_alf(alf){
+                let c = 0;
 
-                answers_final[i] = answers_final[i].substring(0, answers_final[i].length - 1);
-                answers_final[i] = answers_final[i].slice(0, -1);
+                for (let k = 0; k < alf.length; k++){
+                    if (answers_final[i][answers_final[i].length-1] == alf[k]){
+                        c++;
+                    }
+                }
+                for (let k = 0; k < alf.length; k++){
+                    if (answers_final[i][answers_final[i].length-2] == alf[k]){
+                        c++;
+                    }
+                }
+    
+                for (let k = 0; k < alf.length; k++){
+                    if (answers_final[i][answers_final[i].length-3] == alf[k]){
+                        c++;
+                    }
+                }
+                for (let k = 0; k < alf.length; k++){
+                    if (answers_final[i][answers_final[i].length-4] == alf[k]){
+                        c++;
+                    }
+                }
+
+                return c;
+            }
+
+            let c = await check_if_alf(alfavit);
+            if (c==0){
+                c = await check_if_alf(angl_alf);
+            }
+
+            console.log('C = ', c);
+
+            if (c>=2){
+                let temp_str = '';
+                let do_chage = false;
+                for (let k = 0; k < answers_final[i].length; k++){
+                    if (answers_final[i][0]=='С' && (answers_final[i][1]!=answers_final[i][1].toLocaleUpperCase())){
+
+                        if (k>1){
+                            for (let n = 0; n < alfavit.length; n++){
+                                if (answers_final[i][k] == alfavit[n]){
+                                    temp_str+=alfavit[n];
+                                    do_chage = true;
+                                }
+                            }
+                            for (let n = 0; n < angl_alf.length; n++){
+                                if (answers_final[i][k] == angl_alf[n]){
+                                    temp_str+=angl_alf[n];
+                                    do_chage = true;
+                                }
+                            }
+                        }
+                        
+                    }else{
+                        if (answers_final[i] != answers_final[i].toLocaleUpperCase()){
+                            if (k == (answers_final[i].length-8)){
+                                for (let n = 0; n < alfavit.length; n++){
+                                    if (answers_final[i][k] == alfavit[n]){
+                                        do_chage = true;
+                                        temp_str+=alfavit[n];
+                                    }
+                                }
+                                for (let n = 0; n < angl_alf.length; n++){
+                                    if (answers_final[i][k] == angl_alf[n]){
+                                        temp_str+=angl_alf[n];
+                                        do_chage = true;
+                                    }
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+                console.log('Ура!!!!!!', temp_str);
+                if (do_chage == true){
+                    answers_final[i] = temp_str;
+                }
+                
                 
             }
+
+
+            // if (answers_final[i][0] == 'С' && answers_final[i][1] == 'л'){
+            //     //answers_final[i] = answers_final[i].substring(answers_final[i].lastIndexOf('«')+1);
+
+
+
+            //     answers_final[i] = answers_final[i].substring(0, answers_final[i].length - 1);
+            //     answers_final[i] = answers_final[i].slice(0, -1);
+                
+            // }
+
+            
         }
 
         console.log(answers_final);
@@ -311,11 +420,14 @@ let url = 'https://inf-oge.sdamgia.ru/test?id=20040454';
 
         await page.screenshot({ path: 'fullpage.png'});
 
+
         //await browser.close();
 
 
 
     }, 5000);
-})()
+}
+
+
 // для котировок
 
