@@ -220,10 +220,16 @@ async function main(url, is_auth){
                     
                 }
                 if (roma==0){
+                    let c = 0;
                     for (let l = 0; l < answers_dirt[i][k].length; l++){
                         if (answers_dirt[i][k][l][0] == 'С'){
-                            answers_middle.push(answers_dirt[i][k][l]);
-                            normal = true;
+
+                            if (c==0){
+                                c++;
+                                answers_middle.push(answers_dirt[i][k][l]);
+                                normal = true;
+                            }
+                            
                             //console.log(answers_dirt[i][k], 1000);
                         }
                     }
